@@ -9,7 +9,7 @@ export class RelayerController {
   constructor(
     private relayerService: RelayerService,
     private relayProxyService: RelayProxyService,
-  ) {}
+  ) { }
 
   @Get('contractAddress')
   getRelayerContractAddress(@Query('chainId') chainId: number) {
@@ -19,10 +19,15 @@ export class RelayerController {
     };
   }
 
-  @Post('newTx')
+  @Post('tx')
   handleTxToBeRelayed(
     @Body() metaTx: RelayMetaTxDto,
   ): Promise<RelayTxResponse> {
     return this.relayerService.processRelayedTx(metaTx);
+  }
+
+  @Get('tx')
+  fetchRelayTxInfo(@Query('requestId') requestId: string) {
+    return this.relayerService.fetchRelayedTxInfo(requestId);
   }
 }

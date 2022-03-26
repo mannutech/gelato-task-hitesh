@@ -43,7 +43,7 @@ export class SendRelayTxService {
     private web3Service: Web3ServiceProvider,
     private dbService: DatabaseService,
     private httpService: HttpService,
-  ) {}
+  ) { }
 
   async buildAndSendRelayRequest(requestId: string) {
     this.logger.log(
@@ -122,19 +122,18 @@ export class SendRelayTxService {
           relayStatus: RelayTxStatus.INITIATED,
         },
         {
-          orderCreatedHash: broadcastResult.hash,
-          relayStatus: RelayTxStatus.QUEUED,
-        },
-        {
-          multi: false,
+          $set: {
+            orderCreatedHash: broadcastResult.hash,
+            relayStatus: RelayTxStatus.QUEUED,
+          }
         },
       );
 
     this.logger.log(
       `[buildAndSendRelayRequest] | RequestId: ${
-        relayRequestData.requestId
+      relayRequestData.requestId
       } | Updated as ${
-        RelayTxStatus.QUEUED
+      RelayTxStatus.QUEUED
       } successfully. | New record: ${JSON.stringify(updateResults)}`,
     );
 
@@ -144,7 +143,7 @@ export class SendRelayTxService {
 
     // Asynchronously Wait for Tx Receipt
     broadcastResult
-      .wait(3)
+      .wait(3) // Todo: Better add some retrying mechanism to check for pending orders
       .then((receipt) => {
         this.logger.log(
           `[buildAndSendRelayRequest] | RequestId: ${relayRequestData.requestId} | Blockchain Transaction Receipt: ${receipt.transactionHash}. | Status: ${receipt.status} | Block Number: ${receipt.blockNumber}`,
@@ -214,8 +213,11 @@ export class SendRelayTxService {
           orderCreatedHash: txHash,
         },
         {
-          gelatoOrderIdHash: graphRequest.data.data.orders[0],
-          relayStatus: RelayTxStatus.PROCESSED,
+          $set:
+          {
+            onChainOrderDetails: graphRequest.data.data.orders[0],
+            relayStatus: RelayTxStatus.PROCESSED,
+          }
         },
         {
           multi: false,

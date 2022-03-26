@@ -11,10 +11,6 @@ export class DatabaseService {
   }
 
   private loadRelayTransactionRecord() {
-    this.relayTransaction = DataStore.create({
-      autoload: true,
-      inMemoryOnly: true,
-      timestampData: true,
-    });
+    this.relayTransaction = DataStore.create(`RelayTransactionRecord.db`);
   }
 }
