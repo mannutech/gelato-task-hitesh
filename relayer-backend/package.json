@@ -1,6 +1,6 @@
 {
-  "name": "relayer-backend",
-  "version": "0.0.1",
+  "name": "gelato-relayer-backend",
+  "version": "1.0.1",
   "description": "This backend server enables a user to relay meta transactions.",
   "author": "@mannutech",
   "private": true,
