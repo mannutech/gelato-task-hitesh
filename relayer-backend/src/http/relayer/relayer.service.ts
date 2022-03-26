@@ -70,7 +70,7 @@ export class RelayerService {
     );
 
 
-    const record = await this.dbService.relayTransaction.find<RelayTransactionRecord>({
+    const record = await this.dbService.relayTransaction.findOne<RelayTransactionRecord>({
       requestId
     });
 
