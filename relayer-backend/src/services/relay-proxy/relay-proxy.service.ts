@@ -43,8 +43,7 @@ export class RelayProxyService {
    *
    * @param web3ServiceProvider Autoinjected
    */
-  constructor(private web3ServiceProvider: Web3ServiceProvider,) {
-  }
+  constructor(private web3ServiceProvider: Web3ServiceProvider) {}
 
   /**
    * Returns the current relayer proxy contract address
@@ -68,8 +67,7 @@ export class RelayProxyService {
     daiPermit: DaiPermitFunctionData,
     chainId: number,
   ): Promise<ethers.PopulatedTransaction> {
-
-    this.logger.log(`[createUnsignedTx] Creating unsignedTx !`)
+    this.logger.log(`[createUnsignedTx] Creating unsignedTx !`);
 
     // Fetch RelayProxyV1ContractAddress
     const relayProxyV1Address =
@@ -108,10 +106,12 @@ export class RelayProxyService {
         limitOrderData,
         daiPermit,
         daiTokenAddress,
-        erc20OrderRouterAddress
+        erc20OrderRouterAddress,
       );
 
-    this.logger.log(`[createUnsignedTx] PopulatedTx: ${JSON.stringify(populatedTransaction)}`)
+    this.logger.log(
+      `[createUnsignedTx] PopulatedTx: ${JSON.stringify(populatedTransaction)}`,
+    );
     return populatedTransaction;
   }
 }

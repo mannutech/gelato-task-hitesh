@@ -9,8 +9,7 @@ import { Web3ServiceProvider } from '../../services/web3-service-provider/web3-s
 export class GelatoLimitOrderService {
   private logger = new Logger(GelatoLimitOrderService.name);
 
-  constructor(private web3ServiceProvider: Web3ServiceProvider) { }
-
+  constructor(private web3ServiceProvider: Web3ServiceProvider) {}
 
   /**
    * * Builds blockchain params for the Gelato Limit Order order
@@ -21,18 +20,25 @@ export class GelatoLimitOrderService {
     limitOrderData: CreateLimitOrderData,
     chainId: ChainId,
   ) {
-    this.logger.log(`Building Gelator Limit Order: ${chainId} | Data: ${JSON.stringify(limitOrderData)}`)
+    this.logger.log(
+      `Building Gelator Limit Order: ${chainId} | Data: ${JSON.stringify(
+        limitOrderData,
+      )}`,
+    );
 
     // Initialise Web3 Provider
     const provider = this.web3ServiceProvider.initializeProvider(chainId);
 
-    const gelatoLimitOrders = new GelatoLimitOrders(chainId as ChainId, provider);
+    const gelatoLimitOrders = new GelatoLimitOrders(
+      chainId as ChainId,
+      provider,
+    );
 
     const encodedTxData = await gelatoLimitOrders.encodeLimitOrderSubmission(
       limitOrderData.inputTokenAddress,
       limitOrderData.outputTokenAddress,
-      ethers.utils.parseUnits(limitOrderData.inputAmount, "wei"),
-      ethers.utils.parseUnits(limitOrderData.minimumReturn, "wei"),
+      ethers.utils.parseUnits(limitOrderData.inputAmount, 'wei'),
+      ethers.utils.parseUnits(limitOrderData.minimumReturn, 'wei'),
       limitOrderData.fromAddress,
     );
 
@@ -89,7 +95,6 @@ export class GelatoLimitOrderService {
     const gelatoLimitOrders = new GelatoLimitOrders(chainId as ChainId);
 
     // Return gelato open orders (including `null` )
-
     const order = await gelatoLimitOrders.getOrder(orderId);
     return order;
   }

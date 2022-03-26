@@ -9,7 +9,7 @@ export enum RelayTxStatus {
   REJECTED = 'rejected',
 
   // Transaction relayed successfully on blockchain
-  SUCCESSFUL = 'successful',
+  PROCESSED = 'processed',
 
   // Relay request cancelled by the user
   CANCELLED = 'cancelled',
@@ -18,7 +18,7 @@ export enum RelayTxStatus {
 export class RelayTxResponse {
   requestId: string;
   chainId: number;
-  txHash: string;
+  txHash?: string;
   relayStatus: RelayTxStatus;
   createdAt: string;
 }

@@ -9,11 +9,14 @@ export class RelayerController {
   constructor(
     private relayerService: RelayerService,
     private relayProxyService: RelayProxyService,
-  ) { }
+  ) {}
 
   @Get('contractAddress')
   getRelayerContractAddress(@Query('chainId') chainId: number) {
-    return { contractAddress: this.relayProxyService.getRelayerProxyContractAddress(chainId) };
+    return {
+      contractAddress:
+        this.relayProxyService.getRelayerProxyContractAddress(chainId),
+    };
   }
 
   @Post('newTx')

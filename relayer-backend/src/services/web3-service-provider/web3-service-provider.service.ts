@@ -12,14 +12,13 @@ export class Web3ServiceProvider {
   // TOdo: Load from .env file
   private CHAINID_FUNDEDWALLET_MAP = {};
 
-  constructor(
-    private configService: ConfigService
-  ) {
-
+  constructor(private configService: ConfigService) {
     this.ALCHEMY_API_KEY = this.configService.get<string>('ALCHEMY_API_KEY');
 
     // Polygon mainnet funded account `0x7e00664398A54AE12648CAe2785c36d00dd51672
-    this.CHAINID_FUNDEDWALLET_MAP[137] = this.configService.get<string>('POLYGON_MAINNET_FUNDED_ACCOUNT_PRIVATE_KEY');
+    this.CHAINID_FUNDEDWALLET_MAP[137] = this.configService.get<string>(
+      'POLYGON_MAINNET_FUNDED_ACCOUNT_PRIVATE_KEY',
+    );
   }
 
   /**
