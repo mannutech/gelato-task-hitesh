@@ -13,13 +13,21 @@ export class RelayerController {
 
   @Get('contractAddress')
   getRelayerContractAddress(@Query('chainId') chainId: number) {
-    return { contractAddress: this.relayProxyService.getRelayerProxyContractAddress(chainId) };
+    return {
+      contractAddress:
+        this.relayProxyService.getRelayerProxyContractAddress(chainId),
+    };
   }
 
-  @Post('newTx')
+  @Post('tx')
   handleTxToBeRelayed(
     @Body() metaTx: RelayMetaTxDto,
   ): Promise<RelayTxResponse> {
     return this.relayerService.processRelayedTx(metaTx);
+  }
+
+  @Get('tx')
+  fetchRelayTxInfo(@Query('requestId') requestId: string) {
+    return this.relayerService.fetchRelayedTxInfo(requestId);
   }
 }

@@ -1,28 +1,19 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
-import { GelatoLimitOrderService } from '../gelato-limit-order/gelato-limit-order.service';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { SUPPORTED_CHAINID_NETWORKS } from '../../constants/index';
-import {
-  RelayProxyService,
-  GelatoLimitOrderFunctionData,
-} from '../../services/relay-proxy/relay-proxy.service';
-import { Web3ServiceProvider } from '../../services/web3-service-provider/web3-service-provider.service';
 import { RelayMetaTxDto } from './dto/RelayTxRequest';
 import { RelayTxResponse, RelayTxStatus } from './dto/RelayTxResponse';
 import { v4 as uuid } from 'uuid';
-import { ethers } from 'ethers';
+import { DatabaseService } from '../../services/database/database.service';
+import { RelayTransactionRecord } from '../../services/database/models';
+import { SendRelayTxService } from './send-relay-tx/send-relay-tx.service';
 
 @Injectable()
 export class RelayerService {
   private readonly logger = new Logger(RelayerService.name);
 
   constructor(
-    private gelatoLimitOrderService: GelatoLimitOrderService,
-    private relayProxyService: RelayProxyService,
-    private web3Service: Web3ServiceProvider,
+    private dbService: DatabaseService,
+    private relayTxSender: SendRelayTxService,
   ) { }
 
   async processRelayedTx(relayInfo: RelayMetaTxDto): Promise<RelayTxResponse> {
@@ -38,67 +29,57 @@ export class RelayerService {
     // Generate unique `requestId` for relay request tracking
     const requestId = uuid();
 
+    // Insert Incoming request to DB
+    const relayRecord =
+      await this.dbService.relayTransaction.insert<RelayTransactionRecord>({
+        requestId,
+        chainId: relayInfo.chainId,
+        relayStatus: RelayTxStatus.INITIATED,
+        limitOrderData: relayInfo.txData.limitOrderData,
+        permitData: relayInfo.txData.daiPermitData,
+      });
+
     this.logger.log(
-      `[processRelayedTx] RequestId: ${requestId} Handling MetaTx: ${JSON.stringify(
-        relayInfo.txData,
-      )} | Chain Id: ${relayInfo.chainId}.`,
-    );
-
-    // Initialize Web3 Provider
-    this.web3Service.initializeProvider(relayInfo.chainId);
-
-    // Build Raw Gelato Limit Order
-    this.logger.log(
-      `[processRelayedTx] | RequestId: ${requestId} | Building raw limit order.`,
-    );
-
-    const limitOrderFunctionData = new GelatoLimitOrderFunctionData();
-    limitOrderFunctionData._amount = relayInfo.txData.limitOrderData.amount;
-    limitOrderFunctionData._data = relayInfo.txData.limitOrderData.data;
-    limitOrderFunctionData._inputToken = relayInfo.txData.limitOrderData.inputToken;
-    limitOrderFunctionData._module = relayInfo.txData.limitOrderData.module;
-    limitOrderFunctionData._owner = relayInfo.txData.limitOrderData.owner;
-    limitOrderFunctionData._secret = relayInfo.txData.limitOrderData.secret;
-    limitOrderFunctionData._witness = relayInfo.txData.limitOrderData.witness;
-
-    // Dai Permit function data
-    const daiPermitDataParams = relayInfo.txData.daiPermitData;
-
-    // Create unsigned RelayProxyV1 transaction
-    this.logger.log(
-      `[processRelayedTx] | RequestId: ${requestId} | Creating unsigned transaction.`,
-    );
-    const unsignedRelayTx = await this.relayProxyService.createUnsignedTx(
-      limitOrderFunctionData,
-      daiPermitDataParams,
-      relayInfo.chainId,
-    );
-
-    // Sign and Broadcast the transaction with a funded relayer account
-    this.logger.log(
-      `[processRelayedTx] RequestId: ${requestId}  | Signing and Broadcasting the tx.`,
-    );
-
-    unsignedRelayTx.gasPrice = ethers.utils.parseUnits("50", "gwei");
-    unsignedRelayTx.gasLimit = ethers.BigNumber.from(200_000);
-    unsignedRelayTx.chainId = 137;
-
-    const broadcastResult = await this.web3Service.signAndSendTx(
-      unsignedRelayTx,
+      `[processRelayedTx] RequestId: ${
+      relayRecord.requestId
+      } successfully saved.
+      Inserted record: ${JSON.stringify(relayRecord)}
+      `,
     );
 
     this.logger.log(
-      `[processRelayedTx] | RequestId: ${requestId} | Broadcast results: ${JSON.stringify(
-        broadcastResult,
-      )}.`,
+      `[processRelayedTx] RequestId: ${relayRecord.requestId} Sending to RelaySender Service
+      `,
     );
+
+    this.relayTxSender.buildAndSendRelayRequest(relayRecord.requestId);
 
     return {
-      requestId,
-      chainId: broadcastResult.chainId,
-      txHash: broadcastResult.hash,
-      relayStatus: RelayTxStatus.QUEUED,
-      createdAt: new Date().toISOString(),
+      requestId: relayRecord.requestId,
+      chainId: relayRecord.chainId,
+      relayStatus: relayRecord.relayStatus,
+      createdAt: relayRecord.createdAt,
     };
+  }
+
+  async fetchRelayedTxInfo(requestId: string) {
+    this.logger.log(
+      `[fetchRelayedTxInfo] Searching for RequestId: ${
+      requestId
+      } `,
+    );
+
+
+    const record = await this.dbService.relayTransaction.findOne<RelayTransactionRecord>({
+      requestId
+    });
+
+    this.logger.log(`[fetchRelayedTxInfo] Query results: ${JSON.stringify(record)}`);
+
+    if (!record) {
+      throw new NotFoundException(`RequestId ${requestId} not found in our records.`);
+    }
+
+    return record;
   }
 }

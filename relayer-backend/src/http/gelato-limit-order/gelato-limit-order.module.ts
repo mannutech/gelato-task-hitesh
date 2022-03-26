@@ -8,4 +8,4 @@ import { ConfigService } from '@nestjs/config';
   controllers: [GelatoLimitOrderController],
   providers: [GelatoLimitOrderService, Web3ServiceProvider, ConfigService],
 })
-export class GelatoLimitOrderModule { }
+export class GelatoLimitOrderModule {}
