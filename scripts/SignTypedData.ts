@@ -1,15 +1,20 @@
+import 'dotenv/config';
 import { ethers } from 'ethers';
 
 const SECOND = 1000;
 
 // JavaScript dates have millisecond resolution
-const fromAddress = "<FROM_ADDRSS>";
-
 // 2 Minutes pass
 const expiry = Math.trunc((Date.now() + 120 * SECOND) / SECOND);
 
 // Contract address of RelayProxyV1 on Polygon Mainnet 
-const spender = "0xd3a67F512c338f63c3f81818eFD763fF8C916B73";
+const spender = process.env.RELAY_PROXY_CONTRACT_ADDRESS;
+
+const holderAddress = process.env.FROM_ADDRESS;
+
+const provider = new ethers.providers.JsonRpcProvider(process.env.ALCHEMY_PROVIDER, "matic");
+
+const signer = new ethers.Wallet(process.env.PRIVATE_KEY_SIGNER, provider);
 
 const permitSchema = [
     { name: "holder", type: "address" },
@@ -47,12 +52,8 @@ const domains = {
     }
 };
 
-const provider = new ethers.providers.JsonRpcProvider('https://polygon-mainnet.g.alchemy.com/v2/UwAVUHuYR0Xy78yu5rB4i-NvReHRnZLk', "matic");
-
-const signer = new ethers.Wallet(process.env.PRIVATE_KEY_SIGNER, provider);
-
 const message = {
-    holder: fromAddress,
+    holder: holderAddress,
     spender: spender,
     expiry: expiry,
     allowed: true,
