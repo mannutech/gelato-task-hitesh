@@ -1,4 +1,10 @@
-import { IsBoolean, IsString, IsNumber } from 'class-validator';
+import {
+  IsBoolean,
+  IsString,
+  IsNumber,
+  IsNotEmpty,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 // This is user provided order data which needs completion
@@ -70,9 +76,13 @@ export class DaiPermitData {
 }
 
 export class GelatoLimitOrderWithPermitSigDto {
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
   @Type(() => CompleteLimitOrderData)
   limitOrderData: CompleteLimitOrderData;
 
+  @IsNotEmpty()
+  @ValidateNested({ each: true })
   @Type(() => DaiPermitData)
   daiPermitData: DaiPermitData;
 }

@@ -9,7 +9,7 @@ export class RelayerController {
   constructor(
     private relayerService: RelayerService,
     private relayProxyService: RelayProxyService,
-  ) { }
+  ) {}
 
   @Get('contractAddress')
   getRelayerContractAddress(@Query('chainId') chainId: number) {

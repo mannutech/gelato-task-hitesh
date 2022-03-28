@@ -104,6 +104,11 @@ function signPermit(signer, provider, domain, message) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log('Signing Typed Data:');
+                    console.log("** Note: Permit Expires in TWO Minutes from now. **");
+                    console.log("Signer Account: ".concat(signer.address));
+                    console.log("Domain Separator: ".concat(JSON.stringify(domain)));
+                    console.log("Message to be signed: ".concat(JSON.stringify(message)));
                     if (signer.address.toLowerCase() !== message.holder.toLowerCase()) {
                         throw ("signPermit: address of signer does not match holder address in message");
                     }
@@ -129,7 +134,8 @@ function signPermit(signer, provider, domain, message) {
                     r = sig.slice(0, 66);
                     s = "0x" + sig.slice(66, 130);
                     v = Number("0x" + sig.slice(130, 132));
-                    console.log('signedPermit', JSON.stringify(__assign(__assign({}, message), { v: v, r: r, s: s })));
+                    console.log("\n |********| signedPermit |********| \n");
+                    console.log(JSON.stringify(__assign(__assign({}, message), { v: v, r: r, s: s })));
                     return [2 /*return*/];
             }
         });

@@ -43,7 +43,7 @@ export class SendRelayTxService {
     private web3Service: Web3ServiceProvider,
     private dbService: DatabaseService,
     private httpService: HttpService,
-  ) { }
+  ) {}
 
   async buildAndSendRelayRequest(requestId: string) {
     this.logger.log(
@@ -82,8 +82,7 @@ export class SendRelayTxService {
 
     // Create unsigned RelayProxyV1 transaction
     this.logger.log(
-      `[buildAndSendRelayRequest] | RequestId: ${relayRequestData.requestId} |
-       Creating unsigned transaction.`,
+      `[buildAndSendRelayRequest] | RequestId: ${relayRequestData.requestId} | Creating unsigned transaction.`,
     );
     const unsignedRelayTx = await this.relayProxyService.createUnsignedTx(
       limitOrderFunctionData,
@@ -93,8 +92,7 @@ export class SendRelayTxService {
 
     // Sign and Broadcast the transaction with a funded relayer account
     this.logger.log(
-      `[buildAndSendRelayRequest] 
-      RequestId: ${relayRequestData.requestId} | Signing and Broadcasting the tx.`,
+      `[buildAndSendRelayRequest] | RequestId: ${relayRequestData.requestId} | Signing and Broadcasting the tx.`,
     );
 
     // Manually overriding for Polygon Mainnet
@@ -125,16 +123,16 @@ export class SendRelayTxService {
           $set: {
             orderCreatedHash: broadcastResult.hash,
             relayStatus: RelayTxStatus.QUEUED,
-          }
+          },
         },
       );
 
     this.logger.log(
       `[buildAndSendRelayRequest] | RequestId: ${
-      relayRequestData.requestId
-      } | Updated as ${
-      RelayTxStatus.QUEUED
-      } successfully. | New record: ${JSON.stringify(updateResults)}`,
+        relayRequestData.requestId
+      } | Updated as '${
+        RelayTxStatus.QUEUED
+      }' successfully. | New record: ${JSON.stringify(updateResults)}`,
     );
 
     this.logger.log(
@@ -161,8 +159,30 @@ export class SendRelayTxService {
           );
         }
       })
-      .catch((error) => {
+      .catch(async (error) => {
         this.logger.error(error, error.stack);
+
+        // Mark the record as REJECTED in our database
+        await this.dbService.relayTransaction.update<RelayTransactionRecord>(
+          {
+            requestId: requestId,
+            relayStatus: RelayTxStatus.QUEUED,
+            orderCreatedHash: broadcastResult.hash,
+          },
+          {
+            $set: {
+              relayStatus: RelayTxStatus.REJECTED,
+            },
+          },
+          {
+            multi: false,
+          },
+        );
+
+        this.logger.log(
+          `[buildAndSendRelayRequest] | RequestId: ${relayRequestData.requestId} |
+             Marked relay request as '${RelayTxStatus.REJECTED}'.`,
+        );
       });
   }
 
@@ -189,7 +209,7 @@ export class SendRelayTxService {
     const graphRequest = await lastValueFrom(
       this.httpService.request<GelatoOrderSubgraphResponse>({
         method: 'post',
-        url: 'https://api.thegraph.com/subgraphs/name/gelatodigital/limit-orders-polygon-ii',
+        url: 'https://api.thegraph.com/subgraphs/name/gelatodigital/limit-orders-polygon-ii', // Todo: Refactor to a constant in .env
         headers: {
           'Content-Type': 'application/json',
         },
@@ -213,11 +233,10 @@ export class SendRelayTxService {
           orderCreatedHash: txHash,
         },
         {
-          $set:
-          {
+          $set: {
             onChainOrderDetails: graphRequest.data.data.orders[0],
             relayStatus: RelayTxStatus.PROCESSED,
-          }
+          },
         },
         {
           multi: false,
