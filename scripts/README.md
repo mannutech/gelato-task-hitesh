@@ -22,7 +22,7 @@ cp .env.sample .env
 Note: (Optional) To generate latest JS bindings, run
 
    ```bash
-   npx ts-node SignTypedData.ts
+   npx tsc SignTypedData.ts
    ```
 
 

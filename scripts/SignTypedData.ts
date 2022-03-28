@@ -59,9 +59,16 @@ const message = {
     allowed: true,
 };
 
+
 signPermit(signer, provider, domains.daiPolygon, message).then().catch(console.error);
 
 async function signPermit(signer: ethers.Wallet, provider: ethers.providers.JsonRpcProvider, domain: any, message: any) {
+
+    console.log('Signing Typed Data:')
+    console.log(`** Note: Permit Expires in TWO Minutes from now. **`);
+    console.log(`Signer Account: ${signer.address}`);
+    console.log(`Domain Separator: ${JSON.stringify(domain)}`);
+    console.log(`Message to be signed: ${JSON.stringify(message)}`);
 
     if (signer.address.toLowerCase() !== message.holder.toLowerCase()) {
         throw (`signPermit: address of signer does not match holder address in message`);
@@ -92,6 +99,6 @@ async function signPermit(signer: ethers.Wallet, provider: ethers.providers.Json
     const r = sig.slice(0, 66);
     const s = "0x" + sig.slice(66, 130);
     const v = Number("0x" + sig.slice(130, 132));
-
-    console.log('signedPermit', JSON.stringify({ ...message, v, r, s }));
+    console.log(`\n |********| signedPermit |********| \n`)
+    console.log( JSON.stringify({ ...message, v, r, s }));
 }
