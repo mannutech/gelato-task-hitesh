@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { SUPPORTED_CHAINID_NETWORKS } from '../../constants/index';
 import { RelayMetaTxDto } from './dto/RelayTxRequest';
 import { RelayTxResponse, RelayTxStatus } from './dto/RelayTxResponse';
@@ -14,7 +19,7 @@ export class RelayerService {
   constructor(
     private dbService: DatabaseService,
     private relayTxSender: SendRelayTxService,
-  ) { }
+  ) {}
 
   async processRelayedTx(relayInfo: RelayMetaTxDto): Promise<RelayTxResponse> {
     if (!SUPPORTED_CHAINID_NETWORKS.includes(relayInfo.chainId)) {
@@ -41,7 +46,7 @@ export class RelayerService {
 
     this.logger.log(
       `[processRelayedTx] RequestId: ${
-      relayRecord.requestId
+        relayRecord.requestId
       } successfully saved.
       Inserted record: ${JSON.stringify(relayRecord)}
       `,
@@ -64,20 +69,22 @@ export class RelayerService {
 
   async fetchRelayedTxInfo(requestId: string) {
     this.logger.log(
-      `[fetchRelayedTxInfo] Searching for RequestId: ${
-      requestId
-      } `,
+      `[fetchRelayedTxInfo] Searching for RequestId: ${requestId} `,
     );
 
+    const record =
+      await this.dbService.relayTransaction.findOne<RelayTransactionRecord>({
+        requestId,
+      });
 
-    const record = await this.dbService.relayTransaction.findOne<RelayTransactionRecord>({
-      requestId
-    });
-
-    this.logger.log(`[fetchRelayedTxInfo] Query results: ${JSON.stringify(record)}`);
+    this.logger.log(
+      `[fetchRelayedTxInfo] Query results: ${JSON.stringify(record)}`,
+    );
 
     if (!record) {
-      throw new NotFoundException(`RequestId ${requestId} not found in our records.`);
+      throw new NotFoundException(
+        `RequestId ${requestId} not found in our records.`,
+      );
     }
 
     return record;

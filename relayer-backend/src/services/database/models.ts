@@ -19,7 +19,6 @@ export interface GelatoOnChainOrder {
   cancelledTxHash?: string;
 }
 
-
 export class RelayTransactionRecord {
   requestId: string;
   chainId: ChainId;
